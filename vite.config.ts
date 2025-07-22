@@ -9,19 +9,22 @@ export default defineConfig({
     plugins: [
         tailwindcss(),
         laravel({
-            input: ['resources/css/app.css', 'resources/js/app.tsx'],
+            input: ['resources/css/app.css', 'resources/js/app.jsx'],
             ssr: 'resources/js/ssr.tsx',
             refresh: true,
         }),
-        react(),
+        react({
+            jsxImportSource: '@emotion/react',
+        }),
         tailwindcss(),
     ],
+
     esbuild: {
         jsx: 'automatic',
     },
     resolve: {
         alias: {
-            'ziggy-js': resolve(__dirname, 'vendor/tightenco/ziggy'),
+              'ziggy-js': resolve(__dirname, 'vendor/tightenco/ziggy'),
         },
     },
 });
