@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 
 import { 
   Sun, 
@@ -35,12 +36,19 @@ function goToLogin() {
   router.visit('/site2');
 }
 
+type WeatherInfo = {
+  city: string;
+  temperature: number;
+  condition: string;
+  humidity: number;
+  windSpeed: number;
+};
 
 
 const MiniMeteorologists = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [searchCity, setSearchCity] = useState('');
-  const [weatherData, setWeatherData] = useState(null);
+  const [weatherData, setWeatherData] = useState<WeatherInfo | null>(null);
 
   const weatherCards = [
     {
@@ -115,18 +123,29 @@ const MiniMeteorologists = () => {
     setCurrentSlide((prev) => (prev - 1 + weatherCards.length) % weatherCards.length);
   };
 
-  /*const handleSearch = () => {
-    // Simulate weather data (in real app, you'd call weather API)
-    if (searchCity.trim()) {
-      setWeatherData({
-        city: searchCity,
-        temperature: Math.floor(Math.random() * 30) + 10,
-        condition: "Sunny",
-        humidity: Math.floor(Math.random() * 50) + 30,
-        windSpeed: Math.floor(Math.random() * 20) + 5
-      });
-   } 
-  };*/
+ const handleSearch = async () => {
+  if (!searchCity.trim()) return;
+
+  try {
+    const apiKey = 'YOUR_OPENWEATHERMAP_API_KEY'; // replace this
+    const response = await axios.get(
+      `https://api.openweathermap.org/data/2.5/weather?q=${searchCity}&appid=${apiKey}&units=metric`
+    );
+
+    const data = response.data;
+
+    setWeatherData({
+      city: data.name,
+      temperature: data.main.temp,
+      condition: data.weather[0].main,
+      humidity: data.main.humidity,
+      windSpeed: data.wind.speed
+    });
+  } catch (error) {
+    alert('City not found! Please try again.');
+    setWeatherData(null);
+  }
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-200 via-blue-100 to-indigo-200">
@@ -276,7 +295,8 @@ const MiniMeteorologists = () => {
                 />
               </div>
               <button
-              //  onClick={}
+               onClick={handleSearch}
+               
                 className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-full font-bold text-lg hover:shadow-lg transition-all duration-200 transform hover:scale-105 flex items-center justify-center space-x-2"
               >
                 <Search className="w-5 h-5" />
@@ -287,28 +307,28 @@ const MiniMeteorologists = () => {
             {weatherData && (
               <div className="mt-6 bg-gradient-to-br from-blue-400 to-purple-500 text-white rounded-2xl p-6">
                 <h4 className="text-xl font-bold mb-4 text-center" style={{ fontFamily: 'Comic Sans MS, cursive' }}>
-                  Weather in {weatherData}
+                  Weather in {weatherData.city}
                 </h4>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                   <div className="bg-white/20 rounded-xl p-3 text-center">
                     <Thermometer className="w-6 h-6 mx-auto mb-2" />
                     <p className="text-sm">Temperature</p>
-                    <p className="text-lg font-bold">{weatherData}°C</p>
+                    <p className="text-lg font-bold">{weatherData.city}°C</p>
                   </div>
                   <div className="bg-white/20 rounded-xl p-3 text-center">
                     <Sun className="w-6 h-6 mx-auto mb-2" />
                     <p className="text-sm">Condition</p>
-                    <p className="text-lg font-bold">{weatherData}</p>
+                    <p className="text-lg font-bold">{weatherData.city}</p>
                   </div>
                   <div className="bg-white/20 rounded-xl p-3 text-center">
                     <Droplets className="w-6 h-6 mx-auto mb-2" />
                     <p className="text-sm">Humidity</p>
-                    <p className="text-lg font-bold">{weatherData}%</p>
+                    <p className="text-lg font-bold">{weatherData.city}%</p>
                   </div>
                   <div className="bg-white/20 rounded-xl p-3 text-center">
                     <Wind className="w-6 h-6 mx-auto mb-2" />
                     <p className="text-sm">Wind</p>
-                    <p className="text-lg font-bold">{weatherData} mph</p>
+                    <p className="text-lg font-bold">{weatherData.city} mph</p>
                   </div>
                 </div>
               </div>

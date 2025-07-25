@@ -2,11 +2,12 @@
 
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\OrderController;
 
 
-Route::get('/', function () {
-    return Inertia::render('Welcome');
-});
+//Route::get('/', function () {
+    //return Inertia::render('Welcome');
+//});
 Route::get('/site1', function () {
    return Inertia::render('Site1');
 })->name('site1');
@@ -22,6 +23,13 @@ Route::get('/game1', function () {
 Route::get('/shop', function () {
     return Inertia::render('Shop');
 })->name('shop');
+
+Route::get('/orders', function () {
+    return Inertia::render('OrderForm');
+});
+
+
+Route::get('/order', [OrderController::class, 'showOrderForm']);
 
 //Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
 

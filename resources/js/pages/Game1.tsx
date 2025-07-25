@@ -13,8 +13,8 @@ const WeatherDressUpGame = () => {
     rainy: {
       name: 'Rainy Day',
       icon: CloudRain,
-      color: 'from-gray-600 to-blue-600',
-      correctClothes: ['raincoat', 'boots', 'umbrella'],
+      color: 'from-blue-500 to-blue-600',
+      correctClothes: ['raincoat', 'rainboots', 'umbrella'],
       description: 'It\'s raining outside! What should we wear?'
     },
     sunny: {
