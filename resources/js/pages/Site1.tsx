@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect  } from 'react';
 import axios from 'axios';
 
 import { 
@@ -20,6 +20,7 @@ import {
   LogIn,   
   ChevronLeft,
   ChevronRight,
+  CloudLightning,
   Shirt,
   FileText,
   CreditCard,
@@ -28,7 +29,9 @@ import {
   Droplets,
   Eye,
   Gauge,
-  Container
+  Zap,
+  Container,
+  Umbrella
 } from 'lucide-react';
 import { Link, router } from '@inertiajs/react';
 
@@ -36,7 +39,7 @@ function goToLogin() {
   router.visit('/site2');
 }
 
-type WeatherInfo = {
+interface WeatherInfo  {
   city: string;
   temperature: number;
   condition: string;
@@ -48,7 +51,12 @@ type WeatherInfo = {
 const MiniMeteorologists = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [searchCity, setSearchCity] = useState('');
+
+  const [weatherMessage, setWeatherMessage] = useState('');
+  const [WeatherIcon, setWeatherIcon] = useState(() => Sun);
   const [weatherData, setWeatherData] = useState<WeatherInfo | null>(null);
+  
+  
 
   const weatherCards = [
     {
@@ -127,20 +135,53 @@ const MiniMeteorologists = () => {
   if (!searchCity.trim()) return;
 
   try {
-    const apiKey = 'YOUR_OPENWEATHERMAP_API_KEY'; // replace this
+    const apiKey = '061bfab9a27f537b7e7326cc62625cb0'; 
     const response = await axios.get(
-      `https://api.openweathermap.org/data/2.5/weather?q=${searchCity}&appid=${apiKey}&units=metric`
-    );
+      `https://api.openweathermap.org/data/2.5/weather?q=${searchCity}&appid=061bfab9a27f537b7e7326cc62625cb0&units=metric`);
+    
 
     const data = response.data;
+
+   const condition = data.weather[0].main.toLowerCase();
 
     setWeatherData({
       city: data.name,
       temperature: data.main.temp,
-      condition: data.weather[0].main,
+      condition: condition, 
       humidity: data.main.humidity,
       windSpeed: data.wind.speed
     });
+    
+
+
+
+switch (condition) {
+  case 'rain':
+    setWeatherMessage("Don't forget your umbrella!");
+    setWeatherIcon(() => CloudRain);
+    break;
+  case 'clear':
+    setWeatherMessage("It's a sunny day! Wear your sunglasses!");
+    setWeatherIcon(() => Sun);
+    break;
+  case 'clouds':
+    setWeatherMessage("It's cloudy today. Stay cozy!");
+    setWeatherIcon(() => Cloud);
+    break;
+  case 'snow':
+    setWeatherMessage("It's snowing! Time for snow angels!");
+    setWeatherIcon(() => Snowflake);
+    break;
+  case 'thunderstorm':
+    setWeatherMessage("Stay indoors and stay safe!");
+    setWeatherIcon(() => CloudLightning);
+    break;
+  default:
+    setWeatherMessage("Enjoy the weather and learn something fun!");
+    setWeatherIcon(() => Sun);
+}
+
+
   } catch (error) {
     alert('City not found! Please try again.');
     setWeatherData(null);
@@ -313,24 +354,36 @@ const MiniMeteorologists = () => {
                   <div className="bg-white/20 rounded-xl p-3 text-center">
                     <Thermometer className="w-6 h-6 mx-auto mb-2" />
                     <p className="text-sm">Temperature</p>
-                    <p className="text-lg font-bold">{weatherData.city}°C</p>
+                    <p className="text-lg font-bold">{weatherData.temperature}°C</p> 
                   </div>
                   <div className="bg-white/20 rounded-xl p-3 text-center">
                     <Sun className="w-6 h-6 mx-auto mb-2" />
                     <p className="text-sm">Condition</p>
-                    <p className="text-lg font-bold">{weatherData.city}</p>
+                    <p className="text-lg font-bold">{weatherData.condition}</p>
                   </div>
                   <div className="bg-white/20 rounded-xl p-3 text-center">
                     <Droplets className="w-6 h-6 mx-auto mb-2" />
                     <p className="text-sm">Humidity</p>
-                    <p className="text-lg font-bold">{weatherData.city}%</p>
+                    <p className="text-lg font-bold">{weatherData.humidity}%</p>
                   </div>
                   <div className="bg-white/20 rounded-xl p-3 text-center">
                     <Wind className="w-6 h-6 mx-auto mb-2" />
                     <p className="text-sm">Wind</p>
-                    <p className="text-lg font-bold">{weatherData.city} mph</p>
+                    <p className="text-lg font-bold">{weatherData.windSpeed} m/s</p>
                   </div>
                 </div>
+                 {/* 🎉 Weather Message & Icon */}
+               <div className="mt-6 text-center">
+               <div className="inline-block animate-bounce drop-shadow-lg">
+              <WeatherIcon className="w-12 h-12 mx-auto text-yellow-300" />
+              </div>
+                <p
+                 className="mt-2 text-xl font-bold bg-gradient-to-r from-pink-400 to-yellow-300 bg-clip-text text-transparent animate-pulse"
+                 style={{ fontFamily: '"Comic Sans MS", cursive' }}
+                >
+              {weatherMessage}
+              </p>
+              </div>
               </div>
             )}
             

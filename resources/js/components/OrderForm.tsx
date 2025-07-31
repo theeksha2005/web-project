@@ -24,7 +24,7 @@ const OrderForm = () => {
       total_price: parseFloat(form.total_price),
     };
 
-    Inertia.post('/api/orders', form, {
+    Inertia.post('/orders', form,  {
       onSuccess: (page) => {
        console.log('Inertia page props:', page.props);
       if (page.props?.success) {

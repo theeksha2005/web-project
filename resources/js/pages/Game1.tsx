@@ -1,64 +1,67 @@
 import React, { useState, useEffect } from 'react';
-import { Cloud, Sun, CloudRain, Snowflake, CheckCircle, RotateCcw, Star, Shirt, Glasses, Zap, ShoppingBag, Package, Footprints, Umbrella, Users, Heart, Sparkles, Shield } from 'lucide-react';
+import { Sun, CloudRain, Snowflake, Wind, Shirt, Umbrella, ThermometerSnowflake, ThermometerSun, Smile } from 'lucide-react';
 
-const WeatherDressUpGame = () => {
-  const [currentWeather, setCurrentWeather] = useState('rainy');
-  const [selectedClothes, setSelectedClothes] = useState([]);
-  const [gameComplete, setGameComplete] = useState(false);
-  const [score, setScore] = useState(0);
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [attempts, setAttempts] = useState(0);
+interface WeatherType {
+  icon: React.ReactNode;
+  bgColor: string;
+  clothingSuggestions: string[];
+}
 
-  const weatherTypes = {
-    rainy: {
-      name: 'Rainy Day',
-      icon: CloudRain,
-      color: 'from-blue-500 to-blue-600',
-      correctClothes: ['raincoat', 'rainboots', 'umbrella'],
-      description: 'It\'s raining outside! What should we wear?'
-    },
-    sunny: {
-      name: 'Sunny Day',
-      icon: Sun,
-      color: 'from-yellow-400 to-orange-500',
-      correctClothes: ['tshirt', 'shorts', 'sunglasses'],
-      description: 'It\'s bright and sunny! Perfect weather for playing outside!'
-    },
-    cold: {
-      name: 'Cold Day',
-      icon: Snowflake,
-      color: 'from-blue-400 to-purple-600',
-      correctClothes: ['jacket', 'scarf', 'gloves'],
-      description: 'Brrr! It\'s very cold today!'
-    },
-    cloudy: {
-      name: 'Cloudy Day',
-      icon: Cloud,
-      color: 'from-gray-400 to-gray-600',
-      correctClothes: ['sweater', 'jeans', 'sneakers'],
-      description: 'It\'s cloudy but mild today!'
-    }
-  };
+interface ClothingItem {
+  name: string;
+  icon: React.ReactNode;
+}
 
-  const clothingItems = {
-    raincoat: { name: 'Raincoat', icon: Shield, color: 'bg-yellow-400' },
-    boots: { name: 'Rain Boots', icon: Footprints, color: 'bg-red-400' },
-    umbrella: { name: 'Umbrella', icon: Umbrella, color: 'bg-blue-400' },
-    tshirt: { name: 'T-Shirt', icon: Shirt, color: 'bg-green-400' },
-    shorts: { name: 'Shorts', icon: Package, color: 'bg-orange-400' },
-    sunglasses: { name: 'Sunglasses', icon: Glasses, color: 'bg-purple-400' },
-    jacket: { name: 'Winter Jacket', icon: Shield, color: 'bg-indigo-400' },
-    scarf: { name: 'Scarf', icon: Zap, color: 'bg-pink-400' },
-    gloves: { name: 'Gloves', icon: Users, color: 'bg-teal-400' },
-    sweater: { name: 'Sweater', icon: Shirt, color: 'bg-emerald-400' },
-    jeans: { name: 'Jeans', icon: Package, color: 'bg-blue-500' },
-    sneakers: { name: 'Sneakers', icon: Footprints, color: 'bg-gray-400' }
-  };
+const weatherTypes: Record<string, WeatherType> = {
+  sunny: {
+    icon: <Sun className="w-10 h-10 text-yellow-400" />,
+    bgColor: 'bg-yellow-200',
+    clothingSuggestions: ['t-shirt', 'shorts', 'sunglasses']
+  },
+  rainy: {
+    icon: <CloudRain className="w-10 h-10 text-blue-600" />,
+    bgColor: 'bg-blue-300',
+    clothingSuggestions: ['raincoat', 'umbrella', 'boots']
+  },
+  snowy: {
+    icon: <Snowflake className="w-10 h-10 text-white" />,
+    bgColor: 'bg-blue-100',
+    clothingSuggestions: ['jacket', 'scarf', 'gloves']
+  },
+  windy: {
+    icon: <Wind className="w-10 h-10 text-gray-500" />,
+    bgColor: 'bg-gray-200',
+    clothingSuggestions: ['windbreaker', 'hat']
+  }
+};
 
-  const toggleClothingItem = (item) => {
-    if (gameComplete) return;
-    
-    setSelectedClothes(prev => {
+const clothingItems: ClothingItem[] = [
+  { name: 't-shirt', icon: <Shirt className="w-6 h-6 text-pink-500" /> },
+  { name: 'shorts', icon: <Smile className="w-6 h-6 text-green-500" /> },
+  { name: 'sunglasses', icon: <Sun className="w-6 h-6 text-yellow-500" /> },
+  { name: 'raincoat', icon: <Umbrella className="w-6 h-6 text-blue-800" /> },
+  { name: 'umbrella', icon: <Umbrella className="w-6 h-6 text-purple-600" /> },
+  { name: 'boots', icon: <ThermometerSnowflake className="w-6 h-6 text-indigo-500" /> },
+  { name: 'jacket', icon: <ThermometerSnowflake className="w-6 h-6 text-gray-700" /> },
+  { name: 'scarf', icon: <ThermometerSnowflake className="w-6 h-6 text-red-400" /> },
+  { name: 'gloves', icon: <ThermometerSnowflake className="w-6 h-6 text-orange-400" /> },
+  { name: 'windbreaker', icon: <Wind className="w-6 h-6 text-blue-400" /> },
+  { name: 'hat', icon: <Smile className="w-6 h-6 text-pink-600" /> }
+];
+
+const WeatherDressUpGame: React.FC = () => {
+  const [currentWeather, setCurrentWeather] = useState<string>('sunny');
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const weatherOptions = Object.keys(weatherTypes);
+    const randomWeather = weatherOptions[Math.floor(Math.random() * weatherOptions.length)];
+    setCurrentWeather(randomWeather);
+  }, []);
+
+  const handleItemClick = (item: string) => {
+    setSelectedItems(prev => {
       if (prev.includes(item)) {
         return prev.filter(i => i !== item);
       } else {
@@ -67,191 +70,47 @@ const WeatherDressUpGame = () => {
     });
   };
 
-  const checkAnswer = () => {
-    const correctClothes = weatherTypes[currentWeather].correctClothes;
-    const isCorrect = correctClothes.every(item => selectedClothes.includes(item)) &&
-                     selectedClothes.every(item => correctClothes.includes(item));
-    
-    setAttempts(prev => prev + 1);
-    
-    if (isCorrect) {
-      setGameComplete(true);
-      setScore(prev => prev + Math.max(3 - attempts, 1));
-      setShowFeedback(true);
-      
-      setTimeout(() => {
-        nextLevel();
-      }, 3000);
-    } else {
-      setShowFeedback(true);
-      setTimeout(() => setShowFeedback(false), 2000);
-    }
+  const checkAnswers = () => {
+    const suggestions = weatherTypes[currentWeather].clothingSuggestions;
+    const correct = selectedItems.every(item => suggestions.includes(item)) &&
+                    suggestions.every(item => selectedItems.includes(item));
+    setIsCorrect(correct);
   };
-
-  const nextLevel = () => {
-    const weatherKeys = Object.keys(weatherTypes);
-    const currentIndex = weatherKeys.indexOf(currentWeather);
-    const nextIndex = (currentIndex + 1) % weatherKeys.length;
-    
-    setCurrentWeather(weatherKeys[nextIndex]);
-    setSelectedClothes([]);
-    setGameComplete(false);
-    setShowFeedback(false);
-    setAttempts(0);
-  };
-
-  const resetGame = () => {
-    setSelectedClothes([]);
-    setGameComplete(false);
-    setShowFeedback(false);
-    setAttempts(0);
-  };
-
-  const weather = weatherTypes[currentWeather];
-  const WeatherIcon = weather.icon;
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br ${weather.color} p-4 transition-all duration-700`}>
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-5xl font-bold text-white mb-4 flex items-center justify-center gap-4 animate-bounce">
-            <WeatherIcon size={60} className="drop-shadow-lg" />
-            Weather Dress-Up Game!
-            <Heart size={40} className="text-red-300 animate-pulse" />
-          </h1>
-          <div className="flex items-center justify-center gap-6 text-white text-xl">
-            <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2">
-              <Star size={24} className="text-yellow-300" />
-              <span>Score: {score}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Weather Scene */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-6 mb-8 border-2 border-white/20">
-          <div className="text-center">
-            <div className="text-6xl mb-4">
-              <WeatherIcon size={120} className="mx-auto text-white drop-shadow-lg animate-pulse" />
-            </div>
-            <h2 className="text-3xl font-bold text-white mb-2">{weather.name}</h2>
-            <p className="text-xl text-white/90">{weather.description}</p>
-          </div>
-        </div>
-
-        {/* Clothing Selection Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
-          {Object.entries(clothingItems).map(([key, item]) => {
-            const ItemIcon = item.icon;
-            const isSelected = selectedClothes.includes(key);
-            const isCorrect = weatherTypes[currentWeather].correctClothes.includes(key);
-            
-            return (
-              <button
-                key={key}
-                onClick={() => toggleClothingItem(key)}
-                className={`
-                  ${item.color} hover:scale-110 transform transition-all duration-300
-                  ${isSelected ? 'ring-4 ring-white scale-105 shadow-2xl' : 'hover:shadow-xl'}
-                  ${gameComplete && isCorrect ? 'animate-bounce' : ''}
-                  rounded-2xl p-6 text-white font-bold text-center
-                  border-3 border-white/30 backdrop-blur-sm
-                  ${!gameComplete ? 'cursor-pointer' : 'cursor-default'}
-                  active:scale-95
-                `}
-                disabled={gameComplete}
-              >
-                <ItemIcon size={48} className="mx-auto mb-3 drop-shadow-lg" />
-                <div className="text-sm font-semibold">{item.name}</div>
-                {isSelected && (
-                  <CheckCircle size={24} className="mx-auto mt-2 text-green-200 animate-pulse" />
-                )}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Selected Items Display */}
-        {selectedClothes.length > 0 && (
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 mb-6 border-2 border-white/20">
-            <h3 className="text-white text-xl font-bold mb-3 text-center flex items-center justify-center gap-2">
-              <ShoppingBag size={24} />
-              Your Outfit Choice:
-            </h3>
-            <div className="flex flex-wrap justify-center gap-3">
-              {selectedClothes.map(item => {
-                const ItemIcon = clothingItems[item].icon;
-                return (
-                  <div key={item} className="flex items-center gap-2 bg-white/20 rounded-full px-3 py-2 text-white text-sm">
-                    <ItemIcon size={20} />
-                    {clothingItems[item].name}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Action Buttons */}
-        <div className="flex justify-center gap-4 mb-6">
-          <button
-            onClick={checkAnswer}
-            disabled={selectedClothes.length === 0 || gameComplete}
-            className="bg-green-500 hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed
-                     text-white font-bold py-4 px-8 rounded-full text-xl
-                     transform hover:scale-105 active:scale-95 transition-all duration-200
-                     shadow-lg flex items-center gap-3"
-          >
-            <CheckCircle size={24} />
-            Check My Outfit!
-          </button>
-          
-          <button
-            onClick={resetGame}
-            className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-8 rounded-full text-xl
-                     transform hover:scale-105 active:scale-95 transition-all duration-200
-                     shadow-lg flex items-center gap-3"
-          >
-            <RotateCcw size={24} />
-            Try Again
-          </button>
-        </div>
-
-        {/* Feedback Messages */}
-        {showFeedback && (
-          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50">
-            <div className={`
-              ${gameComplete ? 'bg-green-500' : 'bg-red-500'}
-              text-white text-3xl font-bold p-8 rounded-3xl text-center
-              transform animate-bounce shadow-2xl border-4 border-white
-            `}>
-              {gameComplete ? (
-                <div className="flex flex-col items-center gap-4">
-                  <Sparkles size={60} className="animate-spin" />
-                  <div>Perfect! You know how to dress for {weather.name.toLowerCase()}!</div>
-                  <div className="text-xl">+{Math.max(3 - attempts, 1)} points!</div>
-                  <div className="text-lg flex items-center gap-2">
-                    <Star size={24} className="text-yellow-300" />
-                    Moving to next weather...
-                    <Star size={24} className="text-yellow-300" />
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center gap-4">
-                  <div className="text-4xl">🤔</div>
-                  <div>Not quite right! Think about what keeps you comfortable in this weather!</div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Instructions */}
-        <div className="text-center text-white/80 text-lg">
-          <p className="mb-2">👆 Click on the clothes you think are perfect for this weather!</p>
-          <p>Choose 3 items that will keep you comfortable and safe! ⭐</p>
-        </div>
+    <div className={`min-h-screen flex flex-col items-center justify-center p-6 ${weatherTypes[currentWeather].bgColor}`}>
+      <h1 className="text-3xl font-bold mb-4">🌦️ Weather Dress-Up Game</h1>
+      <div className="text-xl mb-4 flex items-center gap-2">
+        <span>Today's weather is:</span> {weatherTypes[currentWeather].icon}
       </div>
+
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        {clothingItems.map(item => (
+          <button
+            key={item.name}
+            onClick={() => handleItemClick(item.name)}
+            className={`p-4 rounded-xl border-2 flex flex-col items-center justify-center transition-all duration-300 text-sm font-medium ${
+              selectedItems.includes(item.name) ? 'border-green-500 bg-green-100' : 'border-gray-300 bg-white'
+            }`}
+          >
+            {item.icon}
+            <span className="mt-2">{item.name}</span>
+          </button>
+        ))}
+      </div>
+
+      <button
+        onClick={checkAnswers}
+        className="px-6 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors"
+      >
+        ✅ Check
+      </button>
+
+      {isCorrect !== null && (
+        <div className={`mt-4 text-lg font-semibold ${isCorrect ? 'text-green-600' : 'text-red-500'}`}>
+          {isCorrect ? '🎉 Great job! You dressed up correctly!' : '❌ Oops! Try again!'}
+        </div>
+      )}
     </div>
   );
 };

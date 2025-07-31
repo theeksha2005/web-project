@@ -24,7 +24,7 @@ class OrderController extends Controller
 
     $order = Order::create($request->all());
 
-    return redirect()->back()->with('success', 'Order placed successfully!');
+    return redirect()->route('order.form')->with('success', 'Order placed successfully!');
 }
 
     public function showOrderForm() {
