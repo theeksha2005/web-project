@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Layout from '/components/Layout';
+import Layout from '@/layouts/Layout'; 
 import { 
   Cloud, 
   CloudRain, 
@@ -24,6 +24,8 @@ import {
 const WeatherLearningPage = () => {
   const [activeTab, setActiveTab] = useState('disasters');
 
+
+ 
   const disasters = {
     water: [
       { 
@@ -427,6 +429,7 @@ const WeatherLearningPage = () => {
   };
 
   return (
+    <Layout>
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 p-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
@@ -527,6 +530,8 @@ const WeatherLearningPage = () => {
         </div>
       </div>
     </div>
+  
+</Layout>
   );
 };
 

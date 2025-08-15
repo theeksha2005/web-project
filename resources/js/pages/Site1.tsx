@@ -1,6 +1,7 @@
 import React, { useState, useEffect  } from 'react';
 import axios from 'axios';
 
+
 import { 
   Sun, 
   Cloud, 
@@ -206,11 +207,11 @@ switch (condition) {
             
             <div className="flex items-center space-x-2">
               {[
-                { name: 'Home', href: '/',icon: Home, color: 'bg-red-100 text-red-600 hover:bg-red-200' },
-                { name: 'Learn',  href: '/',icon: BookOpen, color: 'bg-green-100 text-green-600 hover:bg-green-200' },
+                { name: 'Home', href: '/site1',icon: Home, color: 'bg-red-100 text-red-600 hover:bg-red-200' },
+                { name: 'Learn',  href: '/learn.tsx',icon: BookOpen, color: 'bg-green-100 text-green-600 hover:bg-green-200' },
                 { name: 'Games', href: '/', icon: Gamepad2, color: 'bg-purple-100 text-purple-600 hover:bg-purple-200' },
                 { name: 'Stargazing', href: '/', icon: Star, color: 'bg-indigo-100 text-indigo-600 hover:bg-indigo-200' },
-                { name: 'Shop', href: '/', icon: ShoppingBag, color: 'bg-pink-100 text-pink-600 hover:bg-pink-200' },
+                { name: 'Shop', href: '/shop', icon: ShoppingBag, color: 'bg-pink-100 text-pink-600 hover:bg-pink-200' },
                 { name: 'About',  href: '/',icon: Info, color: 'bg-orange-100 text-orange-600 hover:bg-orange-200' },
                 { name: 'Sign In', href: '/site2', icon: LogIn, color: 'bg-yellow-100 text-yellow-600 hover:bg-yellow-200' } // ← ADD THIS
 
@@ -572,9 +573,12 @@ switch (condition) {
             </div>
             
             <div className="text-center mt-8">
-              <button className="bg-white text-purple-600 px-8 py-3 rounded-full font-bold text-lg hover:shadow-lg transition-all duration-200 transform hover:scale-105">
-                Visit Our Shop
-              </button>
+              <Link
+              href="/shop"
+               className="bg-white text-purple-600 px-8 py-3 rounded-full font-bold text-lg hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+              >
+          Visit Our Shop
+           </Link>
             </div>
           </div>
         </div>
@@ -625,6 +629,7 @@ switch (condition) {
           <div className="border-t border-white/20 pt-6">
             <p className="text-sm opacity-90">
               © 2025 Mini Meteorologists. Making weather learning magical for young minds! 🌈
+              Created By Theekshana Gaveshani
             </p>
           </div>
         </div>

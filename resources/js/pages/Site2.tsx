@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Inertia } from '@inertiajs/inertia';
 import { Sun, Cloud, CloudRain, Eye, EyeOff, Sparkles, Heart, User, Shield, Star, Smile, Crown, Users } from 'lucide-react';
+import Layout from '@/layouts/Layout'; 
 
 const Login: React.FC = () => {
   
@@ -505,6 +506,13 @@ const Login: React.FC = () => {
       </div>
     </div>
   );
-};
+  };
 
-export default Login;
+export default function Site2() {
+  return (
+    <Layout>
+      <Login />
+    </Layout>
+  );
+}
+

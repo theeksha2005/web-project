@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 import laravel from 'laravel-vite-plugin';
 import { resolve } from 'node:path';
 import { defineConfig } from 'vite'
+import path from 'path';
 
 
 export default defineConfig({
@@ -13,18 +14,19 @@ export default defineConfig({
             ssr: 'resources/js/ssr.tsx',
             refresh: true,
         }),
-        react({
-            jsxImportSource: '@emotion/react',
-        }),
-        tailwindcss(),
+        react(),
+       
     ],
 
     esbuild: {
-        jsx: 'automatic',
+        loader: 'tsx', // ensure TSX files are supported
+         jsx: 'automatic',
     },
     resolve: {
         alias: {
+              '@': path.resolve(__dirname, 'resources/js'),
               'ziggy-js': resolve(__dirname, 'vendor/tightenco/ziggy'),
+            
         },
     },
     server: {
