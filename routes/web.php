@@ -40,6 +40,10 @@ Route::get('/learn', function () {
     return Inertia::render('Learn');
 })->name('learn');
 
+Route::get('/dashboard', function () {
+    return Inertia::render('Dashboard');
+});
+
 Route::get('/order', [OrderController::class, 'showOrderForm'])->name('order.form');
 Route::post('/orders', [OrderController::class, 'store'])->name('order.store');
 

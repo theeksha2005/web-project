@@ -91,18 +91,54 @@ const ParentSignUp: React.FC = () => {
     if (!formData.parentName || !formData.email || !formData.kidName || !formData.kidAge || 
         !formData.parentPassword || !formData.confirmParentPassword || 
         !formData.kidPassword || !formData.confirmKidPassword || !formData.agreeTerms) return;
-    if (!parentPasswordMatch || !kidPasswordMatch) return;
+   
 
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      setIsSuccess(true);
-      setTimeout(() => {
-        setIsSuccess(false);
-        alert(`Welcome ${formData.parentName}! Family accounts created for you and ${formData.kidName || formData.kidNickname}! Both accounts are ready to use.`);
-      }, 2500);
-    }, 2000);
-  };
+     try {
+    const response = await fetch('http://localhost:8000/api/signup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({
+       parentName: formData.parentName,
+        email: formData.email,
+        parentPassword: formData.parentPassword,
+        kidName: formData.kidName,
+        kidPassword: formData.kidPassword,
+        kidNickname: formData.kidNickname,
+        kidAge: parseInt(formData.kidAge, 10),
+        kidBirthMonth: formData.kidBirthMonth
+  })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error('Laravel error response:', data);
+      if (data.errors) {
+        const messages = Object.values(data.errors).flat().join('\n');
+        alert(`Validation errors:\n${messages}`);
+      } else if (data.message) {
+        alert(`Error: ${data.message}`);
+      } else {
+        alert('Unknown error occurred');
+      }
+      return;
+    }
+
+    alert(data.message || 'Accounts created successfully');
+    setIsSuccess(true);
+
+  } catch (error: any) {
+    console.error('Fetch failed:', error);
+    alert(`Something went wrong:\n${error.message}`);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   const nextStep = () => {
     if (currentStep < 3) setCurrentStep(currentStep + 1);

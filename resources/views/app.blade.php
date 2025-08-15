@@ -3,7 +3,8 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-
+        <title inertia>{{ config('app.name', 'Laravel') }}</title>
+        
         {{-- Inline script to detect system dark mode preference and apply it immediately --}}
         <script>
             (function() {
@@ -41,8 +42,9 @@
 
         @routes
         @viteReactRefresh
-        @vite(['resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
+        @vite('resources/js/app.tsx')
         @inertiaHead
+       
     </head>
     <body class="font-sans antialiased">
         @inertia

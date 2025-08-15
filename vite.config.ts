@@ -9,7 +9,7 @@ export default defineConfig({
     plugins: [
         tailwindcss(),
         laravel({
-            input: ['resources/css/app.css', 'resources/js/app.jsx'],
+            input: 'resources/js/app.tsx',
             ssr: 'resources/js/ssr.tsx',
             refresh: true,
         }),
@@ -27,4 +27,14 @@ export default defineConfig({
               'ziggy-js': resolve(__dirname, 'vendor/tightenco/ziggy'),
         },
     },
+    server: {
+        host: 'localhost',
+        port: 5173,
+        hmr: {
+            host: 'localhost',
+        },
+    },
 });
+
+
+

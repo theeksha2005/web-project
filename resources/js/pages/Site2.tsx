@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { Inertia } from '@inertiajs/inertia';
 import { Sun, Cloud, CloudRain, Eye, EyeOff, Sparkles, Heart, User, Shield, Star, Smile, Crown, Users } from 'lucide-react';
 
 const Login: React.FC = () => {
+  
+  
   const [isParentMode, setIsParentMode] = useState(false);
   const [formData, setFormData] = useState({
     kidUsername: '',
@@ -10,6 +13,7 @@ const Login: React.FC = () => {
     password: '',
     remember: false,
   });
+  
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -51,26 +55,73 @@ const Login: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    try {
+    let payload;
+
     if (isParentMode) {
       if (!formData.parentName || !formData.kidName || !formData.password) return;
+      payload = {
+        name: formData.parentName,
+        password: formData.password,
+        role: "parent"
+      };
     } else {
       if (!formData.kidUsername || !formData.password) return;
+      payload = {
+        name: formData.kidUsername,
+        password: formData.password,
+        role: "kid"
+      };
     }
 
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      setIsSuccess(true);
+    const response = await fetch("http://localhost:8000/api/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+
+    
+      // Success handling
+  if (response.ok) {
+  setIsSuccess(true);
+  // Save role and username in localStorage if needed
+  const userRole = isParentMode ? 'parent' : 'kid';
+  const username = isParentMode ? formData.parentName : formData.kidUsername;
+ 
+  localStorage.setItem('role', userRole);
+  localStorage.setItem('username', username);
+
+      // Navigate to Dashboard using Inertia
+        Inertia.visit('/dashboard', { data: { role: userRole, username } });
+
       setTimeout(() => {
-        setIsSuccess(false);
-        const userName = isParentMode ? formData.parentName : formData.kidUsername;
-        const message = isParentMode 
-          ? `Welcome ${formData.parentName}! Managing ${formData.kidName}'s weather dashboard...`
+        const message = isParentMode
+          ? `Welcome ${formData.parentName}! Managing ${formData.kidName}'s dashboard...`
           : `🌟 Welcome ${formData.kidUsername}! Let's explore the weather together! 🌈`;
         alert(message);
-      }, 2000);
-    }, 1500);
-  };
+      }, 500);
+
+
+
+} else {
+  alert(data.message || "Login failed. Please check your credentials.");
+}
+
+  } catch (error) {
+    console.error("Login error:", error);
+    alert("Something went wrong. Please try again later.");
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   const switchMode = () => {
     setIsParentMode(!isParentMode);
@@ -250,7 +301,7 @@ const Login: React.FC = () => {
                 <div className="group">
                   <label htmlFor="kidUsername" className="flex items-center text-lg font-bold text-gray-700 mb-3">
                     <User className="w-5 h-5 mr-2 text-purple-500" />
-                    Your Cool Nickname 😊
+                    Your Cool name 😊
                   </label>
                   <input
                     type="text"
@@ -315,7 +366,7 @@ const Login: React.FC = () => {
                 <div className="group">
                   <label htmlFor="kidName" className="flex items-center text-lg font-bold text-slate-700 mb-3">
                     <Smile className="w-5 h-5 mr-2 text-indigo-500" />
-                    Child's Nickname
+                    Child's name
                   </label>
                   <input
                     type="text"
