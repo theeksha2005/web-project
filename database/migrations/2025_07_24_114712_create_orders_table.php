@@ -12,12 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('orders', function (Blueprint $table) {
-        $table->id();                             // Primary Key
-        $table->unsignedBigInteger('parent_id');    // Foreign Key to user
-        $table->string('item_name');              // Ordered item
-        $table->integer('quantity');
-        $table->decimal('total_price', 10, 2);    // Compatible with PostgreSQL
-        
+        $table->id();                                // Primary Key
+        $table->unsignedBigInteger('parent_id');     // Foreign Key to user
+        $table->decimal('total_price', 10, 2);       // Total price in LKR
+        $table->string('status')->default('pending'); // Order status
+        $table->json('shipping_address')->nullable(); // Shipping info
+        $table->timestamps();     
         });
     }
 

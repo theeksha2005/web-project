@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import Shop from './Shop';
+
+
 
 type UserRole = 'parent' | 'kid' | null;
 
@@ -307,32 +310,35 @@ const Dashboard: React.FC<DashboardProps> = ({ role, username }) => {
     </div>
   );
 
-  // Render games/shop content
-  const renderContent = () => {
-    switch (currentView) {
-      case 'game1':
-      case 'game2':
-      case 'game3':
-      case 'shop':
-        return (
-          <div className="bg-white rounded-3xl shadow-xl p-8 max-w-2xl mx-auto">
-            <h2 className="text-3xl font-bold mb-6 text-gray-800 capitalize">{currentView}</h2>
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-8 text-center">
-              <div className="text-6xl mb-4">🚧</div>
-              <p className="text-xl text-gray-600 mb-6">Component would load here</p>
-              <button
-                onClick={() => setCurrentView('dashboard')}
-                className="bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white px-8 py-3 rounded-2xl font-semibold transition duration-300 transform hover:scale-105"
-              >
-                ← Back to Dashboard
-              </button>
-            </div>
+ const renderContent = () => {
+  switch (currentView) {
+    case 'game1':
+    case 'game2':
+    case 'game3':
+      return (
+        <div className="bg-white rounded-3xl shadow-xl p-8 max-w-2xl mx-auto">
+          <h2 className="text-3xl font-bold mb-6 text-gray-800 capitalize">{currentView}</h2>
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-8 text-center">
+            <div className="text-6xl mb-4">🚧</div>
+            <p className="text-xl text-gray-600 mb-6">Component would load here</p>
+            <button
+              onClick={() => setCurrentView('dashboard')}
+              className="bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white px-8 py-3 rounded-2xl font-semibold transition duration-300 transform hover:scale-105"
+            >
+              ← Back to Dashboard
+            </button>
           </div>
-        );
-      default:
-        return renderDashboard();
-    }
-  };
+        </div>
+      );
+
+    case 'shop':
+      return <Shop />; // Import shop.tsx and show it here
+
+    default:
+      return renderDashboard();
+  }
+};
+
 
   if (!userRole) {
     return (

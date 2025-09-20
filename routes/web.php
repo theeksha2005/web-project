@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\CartController;
 
 
 //Route::get('/', function () {
@@ -36,22 +37,28 @@ Route::get('/shop', function () {
     return Inertia::render('Shop');
 })->name('shop');
 
+Route::get('/checkoutform', function () {
+    return Inertia::render('CheckoutForm');
+})->name('checkoutform');
+
 Route::get('/learn', function () {
     return Inertia::render('Learn');
 })->name('learn');
 
 Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-});
+    return Inertia::render('Dashboard'); // Matches Dashboard.tsx in resources/js/Pages/
+})->name('dashboard');
 
 Route::get('/order', [OrderController::class, 'showOrderForm'])->name('order.form');
 Route::post('/orders', [OrderController::class, 'store'])->name('order.store');
 
+Route::post('/cart/store', [CartController::class, 'store'])->name('cart.store');
+Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 
-//Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
-
-Route::middleware(['auth', 'verified'])->group(function () {
-    
+// Protected routes (require authentication)
+Route::middleware('auth')->group(function () {
+    Route::put('/cart/items/{item}', [CartController::class, 'update'])->name('cart.update');
+    Route::delete('/cart/items/{item}', [CartController::class, 'destroy'])->name('cart.destroy');
 });
 
 require __DIR__.'/auth.php';
