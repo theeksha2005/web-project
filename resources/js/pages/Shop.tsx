@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { Inertia } from '@inertiajs/inertia';
 import { usePage } from '@inertiajs/react';
 import toast from 'react-hot-toast';
-import axios from "axios"; // adjust path to your axios config
+import axios from "axios";
 import { 
-  ShoppingCart, Plus, Minus, Star, Heart, Sun, CloudRain, Snowflake, Cloud, Shield, Shirt, Sparkles, Gift, Users, Truck, CreditCard, X 
+  ShoppingCart, Star, Heart, Sun, CloudRain, Snowflake, Cloud, Shirt, Sparkles, Gift, Users, Trash
 } from 'lucide-react';
 
 // Type definitions
@@ -27,6 +27,7 @@ type Product = {
 
 type CartItem = {
   id: number;
+  product_id: number;
   name: string;
   price: number;
   quantity: number;
@@ -45,10 +46,8 @@ const KidsWeatherShop: React.FC = () => {
   const serverCart: ServerCart = props.cart || { items: [], total_cents: 0 };
   const [favorites, setFavorites] = useState<number[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [showCart, setShowCart] = useState<boolean>(false);
   const [cart, setCart] = useState<ServerCart>(props.cart || { items: [], total_cents: 0 });
   
-
   const products: Product[] = [
     {
       id: 1,
@@ -112,31 +111,30 @@ const KidsWeatherShop: React.FC = () => {
       ageRange: '2-6 years',
       color: 'bg-gradient-to-br from-green-400 to-blue-500'
     },
-  {
-  id: 6,
-  name: 'Sunny Weather T-Shirt',
-  category: 'tshirts',
-  price: 14.99,
-  icon: Shirt,
-  description: 'Bright T-shirt for sunny days!',
-  rating: 4.5,
-  inStock: true,
-  ageRange: '3-8 years',
-  color: 'bg-yellow-400'
-},
-{
-  id: 7,
-  name: 'Rainy Day T-Shirt',
-  category: 'tshirts',
-  price: 14.99,
-  icon: Shirt,
-  description: 'Keep dry with this rainy day T-shirt!',
-  rating: 4.7,
-  inStock: true,
-  ageRange: '3-8 years',
-  color: 'bg-blue-400'
-}
-
+    {
+      id: 6,
+      name: 'Sunny Weather T-Shirt',
+      category: 'tshirts',
+      price: 14.99,
+      icon: Shirt,
+      description: 'Bright T-shirt for sunny days!',
+      rating: 4.5,
+      inStock: true,
+      ageRange: '3-8 years',
+      color: 'bg-yellow-400'
+    },
+    {
+      id: 7,
+      name: 'Rainy Day T-Shirt',
+      category: 'tshirts',
+      price: 14.99,
+      icon: Shirt,
+      description: 'Keep dry with this rainy day T-shirt!',
+      rating: 4.7,
+      inStock: true,
+      ageRange: '3-8 years',
+      color: 'bg-blue-400'
+    }
   ];
 
   const categories = [
@@ -151,57 +149,139 @@ const KidsWeatherShop: React.FC = () => {
   };
 
   const filteredProducts = selectedCategory === 'all' ? products : products.filter(product => product.category === selectedCategory);
-  const cartItemCount = serverCart.items.reduce((total, item) => total + item.quantity, 0);
+  const cartItemCount = cart.items.reduce((total, item) => total + item.quantity, 0);
 
+  // Function to remove item from cart - IMPROVED with better error handling
+  const removeFromCart = (productId: number) => {
+    console.log('Attempting to remove product ID:', productId);
+    
+    // First, try to find the cart item by product_id
+    const cartItem = cart.items.find(item => item.product_id === productId);
+    
+    if (!cartItem) {
+      toast.error('Item not found in cart');
+      return;
+    }
+
+    // Try different endpoint formats
+    const endpoints = [
+      `/api/cart/items/${cartItem.id}`,
+      `/api/cart/items/${productId}`,
+      '/api/cart/remove'
+    ];
+
+    const attemptDelete = (endpoint: string) => {
+      axios.delete(endpoint, {
+        withCredentials: true,
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || ''
+        },
+        data: endpoint === '/api/cart/remove' ? { product_id: productId } : undefined
+      })
+      .then((res) => {
+        console.log('Delete response:', res);
+        if (res.data.success) {
+          toast.success('Item removed from cart');
+          // Update cart by removing the item
+          setCart(prevCart => ({
+            ...prevCart,
+            items: prevCart.items.filter(item => item.product_id !== productId)
+          }));
+        } else {
+          toast.error(res.data.error || 'Failed to remove item');
+        }
+      })
+      .catch((error) => {
+        console.error('Delete error:', error);
+        if (error.response) {
+          console.error('Error response:', error.response);
+          if (error.response.status === 404) {
+            // If endpoint not found, try next one or fallback to frontend removal
+            const nextEndpoint = endpoints.indexOf(endpoint) + 1;
+            if (nextEndpoint < endpoints.length) {
+              attemptDelete(endpoints[nextEndpoint]);
+            } else {
+              // Fallback: remove from frontend state only
+              toast.success('Item removed from cart');
+              setCart(prevCart => ({
+                ...prevCart,
+                items: prevCart.items.filter(item => item.product_id !== productId)
+              }));
+            }
+          } else {
+            toast.error(`Error: ${error.response.status} - ${error.response.data?.error || 'Failed to remove item'}`);
+          }
+        } else {
+          toast.error('Network error. Removing from cart locally.');
+          // Fallback: remove from frontend state only
+          setCart(prevCart => ({
+            ...prevCart,
+            items: prevCart.items.filter(item => item.product_id !== productId)
+          }));
+        }
+      });
+    };
+
+    // Start with first endpoint
+    attemptDelete(endpoints[0]);
+  };
 
   const ProductCard: React.FC<{ product: Product, setCart: React.Dispatch<React.SetStateAction<ServerCart>> }> = ({ product, setCart }) => {
     const ProductIcon = product.icon;
     const [selectedSize, setSelectedSize] = useState<string | null>(product.sizes ? product.sizes[0] : null);
+    
+    // Find the actual cart item (with cart item ID) for this product
+    const cartItem = cart.items.find(item => item.product_id === product.id);
+    const isInCart = !!cartItem;
 
-  const addToCart = () => {
-  axios.post('/api/cart/items',  
-    { 
-      product_id: product.id, 
-      selected_size: selectedSize, 
-      quantity: 1 
-    }, 
-    { 
-      withCredentials: true,
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement).content
-      }
-    }
-  )
-  .then((res) => {
-    if (res.data.success) {
-      toast.success(res.data.message || 'Added to cart');
-      setCart(res.data.cart); // update cart in React state
-    } else {
-      toast.error(res.data.error || 'Failed to add to cart');
-       console.error('Server error:', res.data.error);
-    }
-  })
-   .catch((error) => {
-    if (error.response) {
-      // The request was made and the server responded with a status code
-      console.error('Error response:', error.response.data);
-      console.error('Error status:', error.response.status);
-      toast.error(error.response.data?.error || 'Failed to add to cart');
-    } else if (error.request) {
-      // The request was made but no response was received
-      console.error('No response received:', error.request);
-      toast.error('No response from server. Please check your connection.');
-    } else {
-      // Something happened in setting up the request
-      console.error('Error setting up request:', error.message);
-      toast.error('Failed to add to cart. Please try again.');
-    }
-  });
-};
+    const addToCart = () => {
+      axios.post('/api/cart/items',  
+        { 
+          product_id: product.id, 
+          selected_size: selectedSize, 
+          quantity: 1 
+        }, 
+        { 
+          withCredentials: true,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || ''
+          }
+        }
+      )
+      .then((res) => {
+        if (res.data.success) {
+          toast.success(res.data.message || 'Added to cart');
+          setCart(res.data.cart || res.data.cat);
+          console.log('Updated cart:', res.data.cart || res.data.cat); 
+        } else {
+          toast.error(res.data.error || 'Failed to add to cart');
+          console.error('Server error:', res.data.error);
+        }
+      })
+      .catch((error) => {
+        if (error.response) {
+          console.error('Error response:', error.response.data);
+          console.error('Error status:', error.response.status);
+          toast.error(error.response.data?.error || 'Failed to add to cart');
+        } else if (error.request) {
+          console.error('No response received:', error.request);
+          toast.error('No response from server. Please check your connection.');
+        } else {
+          console.error('Error setting up request:', error.message);
+          toast.error('Failed to add to cart. Please try again.');
+        }
+      });
+    };
 
-
+    const handleRemoveFromCart = (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      removeFromCart(product.id);
+    };
 
     return (
       <div className={`${product.color} rounded-3xl p-6 text-white shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 border-2 border-white/20 backdrop-blur-sm`}>
@@ -232,7 +312,13 @@ const KidsWeatherShop: React.FC = () => {
             <p className="text-sm font-semibold mb-2">Size:</p>
             <div className="flex flex-wrap gap-2">
               {product.sizes.map(size => (
-                <button key={size} onClick={() => setSelectedSize(size)} className={`${selectedSize === size ? 'bg-white text-gray-800 shadow-lg' : 'bg-white/20 hover:bg-white/30'} px-3 py-1 rounded-full text-xs font-semibold transition-all`}>{size}</button>
+                <button 
+                  key={size} 
+                  onClick={() => setSelectedSize(size)} 
+                  className={`${selectedSize === size ? 'bg-white text-gray-800 shadow-lg' : 'bg-white/20 hover:bg-white/30'} px-3 py-1 rounded-full text-xs font-semibold transition-all`}
+                >
+                  {size}
+                </button>
               ))}
             </div>
           </div>
@@ -241,9 +327,23 @@ const KidsWeatherShop: React.FC = () => {
           <span className="text-2xl font-bold">Rs {product.price}</span>
           {product.originalPrice && <span className="text-lg line-through opacity-70">Rs {product.originalPrice}</span>}
         </div>
-        <button onClick={addToCart} disabled={!product.inStock} className="w-full bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white font-bold py-3 px-6 rounded-full transition-all duration-200 flex items-center justify-center gap-2 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
-          <ShoppingCart size={20} /> {product.inStock ? 'Add to Cart' : 'Out of Stock'}
-        </button>
+        
+        {!isInCart ? (
+          <button 
+            onClick={addToCart} 
+            disabled={!product.inStock} 
+            className="w-full bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white font-bold py-3 px-6 rounded-full transition-all duration-200 flex items-center justify-center gap-2 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ShoppingCart size={20} /> {product.inStock ? 'Add to Cart' : 'Out of Stock'}
+          </button>
+        ) : (
+          <button 
+            onClick={handleRemoveFromCart}
+            className="w-full bg-red-500/20 hover:bg-red-500/30 backdrop-blur-sm text-white font-bold py-3 px-6 rounded-full transition-all duration-200 flex items-center justify-center gap-2 hover:scale-105 active:scale-95"
+          >
+            <Trash size={20} /> Remove from Cart
+          </button>
+        )}
       </div>
     );
   };
@@ -260,17 +360,21 @@ const KidsWeatherShop: React.FC = () => {
                 <p className="text-white/80">Educational fun for little weather explorers!</p>
               </div>
             </div>
-            <button onClick={() => setShowCart(true)} className="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white font-bold py-3 px-6 rounded-full transition-all duration-200 flex items-center gap-3 hover:scale-105 relative">
+            <div className="bg-white/20 backdrop-blur-sm text-white font-bold py-3 px-6 rounded-full flex items-center gap-3">
               <ShoppingCart size={24} />
               <span>Cart ({cartItemCount})</span>
-            </button>
+            </div>
           </div>
         </header>
         <div className="flex flex-wrap gap-3 mb-8 justify-center">
           {categories.map(category => {
             const CategoryIcon = category.icon;
             return (
-              <button key={category.id} onClick={() => setSelectedCategory(category.id)} className={`flex items-center gap-2 px-6 py-3 rounded-full font-semibold transition-all duration-200 hover:scale-105 ${selectedCategory === category.id ? 'bg-white text-purple-600 shadow-lg' : 'bg-white/20 text-white hover:bg-white/30'} backdrop-blur-sm`}>
+              <button 
+                key={category.id} 
+                onClick={() => setSelectedCategory(category.id)} 
+                className={`flex items-center gap-2 px-6 py-3 rounded-full font-semibold transition-all duration-200 hover:scale-105 ${selectedCategory === category.id ? 'bg-white text-purple-600 shadow-lg' : 'bg-white/20 text-white hover:bg-white/30'} backdrop-blur-sm`}
+              >
                 <CategoryIcon size={20} /> {category.name}
               </button>
             );

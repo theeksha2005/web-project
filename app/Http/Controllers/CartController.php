@@ -84,6 +84,8 @@ class CartController extends Controller
      */
     public function store(AddCartItemRequest $request)
     {
+        DB::beginTransaction(); // Add transaction begin
+
         \Log::info('API Cart store request', [
         'url' => $request->fullUrl(),
         'data' => $request->all(),
@@ -215,7 +217,7 @@ class CartController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            
+            DB::rollBack(); // Rollback on error
             
             Log::error('Cart store error: ' . $e->getMessage(), [
                 'exception' => $e,

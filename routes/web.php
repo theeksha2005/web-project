@@ -45,6 +45,10 @@ Route::get('/learn', function () {
     return Inertia::render('Learn');
 })->name('learn');
 
+Route::get('/progressrep', function () {
+    return Inertia::render('ProgressRep');
+})->name('progressrep');
+
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard'); // Matches Dashboard.tsx in resources/js/Pages/
 })->name('dashboard');
